@@ -61,6 +61,8 @@ TOP_MODULE = tb_microprocessor
 TOP_FILE = $(ROOT_DIR)/tb/$(TOP_MODULE).sv
 WAVEFORM_FILE = $(ROOT_DIR)/sim/$(TOP_MODULE).vcd
 
+VERILATOR_INPUT_OLD = $(TOP_FILE) -Isrc-old -Itb --top $(TOP_MODULE)
+
 all: vl waves
 
 vl: clean
@@ -68,6 +70,25 @@ vl: clean
 	@echo "-- VERILATE ----------------"
 	@$(VERILATOR) --version
 	$(VERILATOR) $(VERILATOR_FLAGS) $(VERILATOR_INPUT)
+
+	@echo
+	@echo "-- RUN ---------------------"
+	@mkdir -p tmp
+	obj_dir/V$(TOP_MODULE)
+
+	# @echo
+	# @echo "-- COVERAGE ----------------"
+	# @rm -rf logs/annotated
+	# $(VERILATOR_COVERAGE) $(VERILATOR_COV_FLAGS)
+
+	@echo
+	@echo "-- DONE --------------------"
+
+vlo: clean
+	@echo
+	@echo "-- VERILATE ----------------"
+	@$(VERILATOR) --version
+	$(VERILATOR) $(VERILATOR_FLAGS) $(VERILATOR_INPUT_OLD)
 
 	@echo
 	@echo "-- RUN ---------------------"
