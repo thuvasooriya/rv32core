@@ -52,15 +52,25 @@ package rv32_pkg;
         R_AND  = 4'b0111   // funct3=7, funct7=0
     } rtype_funct_e;
 
-    // branch conditions
+    // // branch conditions
+    // typedef enum logic [2:0] {
+    //     BRANCH_EQ  = 3'b000,
+    //     BRANCH_NE  = 3'b001,
+    //     BRANCH_LT  = 3'b100,
+    //     BRANCH_GE  = 3'b101,
+    //     BRANCH_LTU = 3'b110,
+    //     BRANCH_GEU = 3'b111
+    // } branch_funct_e;
+
+    // branch operations
     typedef enum logic [2:0] {
-        BRANCH_EQ  = 3'b000,
-        BRANCH_NE  = 3'b001,
-        BRANCH_LT  = 3'b100,
-        BRANCH_GE  = 3'b101,
-        BRANCH_LTU = 3'b110,
-        BRANCH_GEU = 3'b111
-    } branch_funct_e;
+        BRANCH_EQ,
+        BRANCH_NE,
+        BRANCH_LT,
+        BRANCH_GE,
+        BRANCH_LTU,
+        BRANCH_GEU
+    } branch_op_e;
 
     // decoded instruction
     typedef struct packed {
@@ -133,15 +143,6 @@ package rv32_pkg;
     } ctrl_signals_t;
 
 
-    // branch operations
-    typedef enum logic [2:0] {
-        BRANCH_EQ,
-        BRANCH_NE,
-        BRANCH_LT,
-        BRANCH_GE,
-        BRANCH_LTU,
-        BRANCH_GEU
-    } branch_op_e;
 
     // memory operations
     typedef enum logic [1:0] {

@@ -5,8 +5,8 @@ module instruction_decoder
     output decoded_instr_t        decoded_instr_o
 );
     // cast raw instruction to structured type
-    rv32_inst_t instr;
-    assign instr = rv32_inst_t'(instr_raw_i);
+    instr_t instr;
+    assign instr = instr_t'(instr_raw_i);
 
     opcode_e      opcode;
     rtype_funct_e r_funct;

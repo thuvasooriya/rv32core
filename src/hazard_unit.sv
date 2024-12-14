@@ -1,6 +1,6 @@
 
 module hazard_unit
-    import riscv_pkg::*;
+    import rv32_pkg::*;
 (
     input  logic [4:0] rs1_addr_i,
     input  logic [4:0] rs2_addr_i,
