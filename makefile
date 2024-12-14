@@ -31,8 +31,6 @@ VERILATOR_FLAGS += --build -j
 # add this trace to get a backtrace in gdb
 #VERILATOR_FLAGS += --gdbbt
 
-# VERILATOR_INPUT = -f input.vc top.v sim_main.cpp
-VERILATOR_INPUT = $(TOP_FILE) -Isrc -Itb --top $(TOP_MODULE)
 
 ######################################################################
 
@@ -57,11 +55,17 @@ WAVEFORM_VIEWER ?= surfer
 
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
-TOP_MODULE = tb_microprocessor
+
+TOP_MODULE_OLD = tb_microprocessor
+TOP_FILE_OLD = $(ROOT_DIR)/src-old/tb_microprocessor.sv
+VERILATOR_INPUT_OLD = $(TOP_FILE_OLD) -Isrc-old --top tb_microprocessor
+WAVEFORM_FILE_OLD = $(ROOT_DIR)/sim/$(TOP_MODULE_OLD).vcd
+
+TOP_MODULE = tb_top
 TOP_FILE = $(ROOT_DIR)/tb/$(TOP_MODULE).sv
 WAVEFORM_FILE = $(ROOT_DIR)/sim/$(TOP_MODULE).vcd
-
-VERILATOR_INPUT_OLD = $(TOP_FILE) -Isrc-old -Itb --top $(TOP_MODULE)
+# VERILATOR_INPUT = -f input.vc top.v sim_main.cpp
+VERILATOR_INPUT = $(TOP_FILE) -Isrc -Itb --top $(TOP_MODULE)
 
 all: vl waves
 
@@ -84,7 +88,7 @@ vl: clean
 	@echo
 	@echo "-- DONE --------------------"
 
-vlo: clean
+vlold: clean
 	@echo
 	@echo "-- VERILATE ----------------"
 	@$(VERILATOR) --version
@@ -93,12 +97,7 @@ vlo: clean
 	@echo
 	@echo "-- RUN ---------------------"
 	@mkdir -p tmp
-	obj_dir/V$(TOP_MODULE)
-
-	# @echo
-	# @echo "-- COVERAGE ----------------"
-	# @rm -rf logs/annotated
-	# $(VERILATOR_COVERAGE) $(VERILATOR_COV_FLAGS)
+	obj_dir/V$(TOP_MODULE_OLD)
 
 	@echo
 	@echo "-- DONE --------------------"
@@ -106,6 +105,9 @@ vlo: clean
 waves:
 	$(WAVEFORM_VIEWER) $(WAVEFORM_FILE) > $(ROOT_DIR)/tmp/$(WAVEFORM_VIEWER).log 2>&1 &
 
+
+wavesold:
+	$(WAVEFORM_VIEWER) $(WAVEFORM_FILE_OLD) > $(ROOT_DIR)/tmp/$(WAVEFORM_VIEWER).log 2>&1 &
 
 schematic:
 	netlistsvg synth/synthesized.json -o synth/synthesized.svg
@@ -115,7 +117,7 @@ export ROOT_DIR := $(shell pwd)
 clean:
 	$(RM) -R sim/*.vpi
 	$(RM) -R sim/*.vvp
-	$(RM) -R sim/*.vcd
+	# $(RM) -R sim/*.vcd
 	$(RM) -R sim/*.fst
 	$(RM) -R sim/*.o
 	$(RM) -R tmp
