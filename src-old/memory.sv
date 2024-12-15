@@ -15,7 +15,8 @@ module memory #(
 
     // initializing instruction memory
     initial begin
-        if (INSTR_MEM) $readmemh("src-old/instr.mem", mem);
+        // if (INSTR_MEM) $readmemh("src-old/instr.mem", mem);
+        if (INSTR_MEM) $readmemh("instr.mem", mem);
     end
 
     always @(posedge clk) begin

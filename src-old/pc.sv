@@ -6,7 +6,7 @@ module pc #(
     input logic load,
     input logic next_sel,
     input logic dmem_valid,
-    input logic branch_reselt,
+    input logic branch_result,
     input logic [WIDTH-1:0] next_address,
     input logic [WIDTH-1:0] address_in,
 
@@ -16,13 +16,11 @@ module pc #(
 
     reg [WIDTH-1:0] prev_addr;
 
-    always @(posedge clk or negedge rst) begin
+    always_ff @(posedge clk) begin
         if (!rst) begin
             address_out <= 0;
-        end else if (next_sel | branch_reselt) begin
+        end else if (next_sel | branch_result) begin
             address_out <= next_address;
-        end else if ((load && !dmem_valid)) begin
-            address_out <= address_out;
         end else begin
             address_out <= address_out + 32'd4;
         end
@@ -32,33 +30,4 @@ module pc #(
 
     assign pre_address_pc = prev_addr;
 
-    //     input  logic             clk,
-    //     input  logic             rst_n,
-    //     input  logic             enable,
-    //     input  logic             branch,
-    //     input  logic [WIDTH-1:0] branch_target,
-    //     input  logic             jump,
-    //     input  logic [WIDTH-1:0] jump_target,
-    //     output logic [WIDTH-1:0] pc
-    // );
-    //
-    //   logic [WIDTH-1:0] next_pc;
-    //
-    //   always_comb begin
-    //     if (jump) begin
-    //       next_pc = jump_target;
-    //     end else if (branch) begin
-    //       next_pc = branch_target;
-    //     end else begin
-    //       next_pc = pc + 4;
-    //     end
-    //   end
-    //
-    //   always_ff @(posedge clk or negedge rst_n) begin
-    //     if (~rst_n) begin
-    //       pc <= '0;
-    //     end else if (enable) begin
-    //       pc <= next_pc;
-    //     end
-    //   end
 endmodule
