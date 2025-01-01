@@ -18,6 +18,12 @@ src-old will be converted to singlecycle non pipelined version.
 
 new src is in src folder which is still wip
 
+### goals
+#### initial goals
+- [ ] rv32ui v2.1
+- [ ] 5 stage pipeline
+- [ ] 2/4 way set associative cache
+
 ### todo
 
 - [ ] cleanup and have a singlecycle non pipelined rv32ui core @lohan

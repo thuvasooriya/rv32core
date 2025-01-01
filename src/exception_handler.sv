@@ -1,5 +1,11 @@
+`default_nettype none
+`ifndef RV32_PKG_HEADER
+`define RV32_PKG_HEADER
+`include "rv32_pkg.svh"
+`endif
+
 module exception_handler
-    import rv32_pkg::*;
+  import rv32_pkg::*;
 (
     input  logic        clk_i,
     input  logic        rst_ni,
@@ -19,33 +25,33 @@ module exception_handler
     output logic [31:0] exception_pc_o
 );
 
-    // Exception priority encoder
-    always_comb begin
-        take_exception_o = 1'b0;
-        exception_pc_o   = '0;
-        csr_addr_o       = '0;
-        csr_wdata_o      = '0;
-        csr_we_o         = 1'b0;
+  // Exception priority encoder
+  always_comb begin
+    take_exception_o = 1'b0;
+    exception_pc_o   = '0;
+    csr_addr_o       = '0;
+    csr_wdata_o      = '0;
+    csr_we_o         = 1'b0;
 
-        if (misaligned_instr_i) begin
-            take_exception_o = 1'b1;
-            csr_addr_o       = CSR_MTVAL;
-            csr_wdata_o      = illegal_instr_pc_i;
-            csr_we_o         = 1'b1;
-            exception_pc_o   = EXCEPTION_HANDLER_ADDR;
-        end else if (illegal_instr_i) begin
-            take_exception_o = 1'b1;
-            csr_addr_o       = CSR_MTVAL;
-            csr_wdata_o      = illegal_instr_pc_i;
-            csr_we_o         = 1'b1;
-            exception_pc_o   = EXCEPTION_HANDLER_ADDR;
-        end else if (misaligned_load_i || misaligned_store_i) begin
-            take_exception_o = 1'b1;
-            csr_addr_o       = CSR_MTVAL;
-            csr_wdata_o      = illegal_instr_pc_i;
-            csr_we_o         = 1'b1;
-            exception_pc_o   = EXCEPTION_HANDLER_ADDR;
-        end
+    if (misaligned_instr_i) begin
+      take_exception_o = 1'b1;
+      csr_addr_o       = CSR_MTVAL;
+      csr_wdata_o      = illegal_instr_pc_i;
+      csr_we_o         = 1'b1;
+      exception_pc_o   = EXCEPTION_HANDLER_ADDR;
+    end else if (illegal_instr_i) begin
+      take_exception_o = 1'b1;
+      csr_addr_o       = CSR_MTVAL;
+      csr_wdata_o      = illegal_instr_pc_i;
+      csr_we_o         = 1'b1;
+      exception_pc_o   = EXCEPTION_HANDLER_ADDR;
+    end else if (misaligned_load_i || misaligned_store_i) begin
+      take_exception_o = 1'b1;
+      csr_addr_o       = CSR_MTVAL;
+      csr_wdata_o      = illegal_instr_pc_i;
+      csr_we_o         = 1'b1;
+      exception_pc_o   = EXCEPTION_HANDLER_ADDR;
     end
+  end
 
 endmodule

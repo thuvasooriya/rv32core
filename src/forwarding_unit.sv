@@ -1,6 +1,11 @@
+`default_nettype none
+`ifndef RV32_PKG_HEADER
+`define RV32_PKG_HEADER
+`include "rv32_pkg.svh"
+`endif
 
 module forwarding_unit
-    import rv32_pkg::*;
+  import rv32_pkg::*;
 (
     input  logic [4:0] rs1_addr_i,
     input  logic [4:0] rs2_addr_i,
@@ -12,29 +17,29 @@ module forwarding_unit
     output logic [1:0] forward_b_o
 );
 
-    always_comb begin
-        forward_a_o = 2'b00;
-        forward_b_o = 2'b00;
+  always_comb begin
+    forward_a_o = 2'b00;
+    forward_b_o = 2'b00;
 
-        // EX hazard
-        if (ex_reg_write_i && (ex_rd_i != '0) && (ex_rd_i == rs1_addr_i)) begin
-            forward_a_o = 2'b10;
-        end
-        if (ex_reg_write_i && (ex_rd_i != '0) && (ex_rd_i == rs2_addr_i)) begin
-            forward_b_o = 2'b10;
-        end
+    // ex hazard
+    if (ex_reg_write_i && (ex_rd_i != '0) && (ex_rd_i == rs1_addr_i)) begin
+      forward_a_o = 2'b10;
+    end
+    if (ex_reg_write_i && (ex_rd_i != '0) && (ex_rd_i == rs2_addr_i)) begin
+      forward_b_o = 2'b10;
+    end
 
-        // MEM hazard
-        if (mem_reg_write_i && (mem_rd_i != '0) &&
+    // mem hazard
+    if (mem_reg_write_i && (mem_rd_i != '0) &&
         !(ex_reg_write_i && (ex_rd_i != '0) && (ex_rd_i == rs1_addr_i)) &&
         (mem_rd_i == rs1_addr_i)) begin
-            forward_a_o = 2'b01;
-        end
-        if (mem_reg_write_i && (mem_rd_i != '0) &&
+      forward_a_o = 2'b01;
+    end
+    if (mem_reg_write_i && (mem_rd_i != '0) &&
         !(ex_reg_write_i && (ex_rd_i != '0) && (ex_rd_i == rs2_addr_i)) &&
         (mem_rd_i == rs2_addr_i)) begin
-            forward_b_o = 2'b01;
-        end
+      forward_b_o = 2'b01;
     end
+  end
 
 endmodule
