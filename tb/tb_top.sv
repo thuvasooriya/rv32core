@@ -1,99 +1,85 @@
-`define TEST_BENCH_LOADED
-
-`ifndef RV32_PKG_HEADER
-`define RV32_PKG_HEADER
-`include "rv32_pkg.svh"
-`endif
-
-`ifndef TB_PKG_HEADER
-`define TB_PKG_HEADER
-`include "tb_pkg.svh"
-`endif
-
 module tb_top;
-  import tb_pkg::*;
-  import rv32_pkg::*;
+  // Parameters
+  localparam ADDR_WIDTH = 32;
+  localparam DATA_WIDTH = 32;
+  localparam MEM_DEPTH = 1024;  // Size of memory in words
 
-  // Clock and reset
-  logic        clk;
-  logic        rst_n;
+  // Signals
+  logic clk, reset;
+  logic [ADDR_WIDTH-1:0] pc;
+  logic [DATA_WIDTH-1:0] instruction;
+  logic [DATA_WIDTH-1:0] mem_data_in, mem_data_out;
+  logic mem_write, mem_read;
+  logic [ADDR_WIDTH-1:0] mem_addr;
 
-  // DUT signals
-  logic [31:0] instr_addr;
-  logic [31:0] instr_rdata;
-  logic        instr_req;
-  logic        instr_gnt;
-  logic        instr_rvalid;
-
-  logic [31:0] data_addr;
-  logic [31:0] data_wdata;
-  logic [31:0] data_rdata;
-  logic        data_req;
-  logic        data_we;
-  logic [ 3:0] data_be;
-  logic        data_gnt;
-  logic        data_rvalid;
-
-  // DUT instantiation
-  rv32_core dut (.*);
-
-  // Instruction memory
-  memory_model #(
-      .MEM_SIZE(IMEM_SIZE),
-      .INSTRUCTION_MEMORY(1)
-  ) i_mem (
-      .clk_i(clk),
-      .rst_ni(rst_n),
-      .addr_i(instr_addr),
-      .wdata_i('0),
-      .req_i(instr_req),
-      .we_i('0),
-      .be_i('0),
-      .rdata_o(instr_rdata),
-      .gnt_o(instr_gnt),
-      .rvalid_o(instr_rvalid)
+  // Instantiate the DUT (Device Under Test)
+  rv32i_cpu #(
+      .ADDR_WIDTH(ADDR_WIDTH),
+      .DATA_WIDTH(DATA_WIDTH)
+  ) dut (
+      .clk  (clk),
+      .reset(reset)
   );
 
-  // Data memory
-  memory_model #(
-      .MEM_SIZE(DMEM_SIZE),
-      .INSTRUCTION_MEMORY(0)
-  ) d_mem (
-      .clk_i(clk),
-      .rst_ni(rst_n),
-      .addr_i(data_addr),
-      .wdata_i(data_wdata),
-      .req_i(data_req),
-      .we_i(data_we),
-      .be_i(data_be),
-      .rdata_o(data_rdata),
-      .gnt_o(data_gnt),
-      .rvalid_o(data_rvalid)
-  );
+  // Memory Model
+  logic [DATA_WIDTH-1:0] memory[0:MEM_DEPTH-1];
 
-  // Clock generation
+  // Clock Generation
+  initial clk = 0;
+  always #5 clk = ~clk;
+
+  // Reset Generation
   initial begin
-    clk = 0;
-    forever #5 clk = ~clk;
+    reset = 1;
+    #10 reset = 0;
   end
 
-  // Reset generation
-  initial begin
-    rst_n = 0;
-    repeat (5) @(posedge clk);
-    rst_n = 1;
+  // Memory Interface
+  always_ff @(posedge clk) begin
+    if (mem_write) begin
+      memory[mem_addr>>2] <= mem_data_out;
+    end
   end
 
-  // Basic checking
-  always @(posedge clk) begin
-    if (rst_n) begin
-      assert (instr_addr < IMEM_SIZE)
-      else $error("PC out of range");
-      if (data_req) begin
-        assert (data_addr < DMEM_SIZE)
-        else $error("Data address out of range");
+  assign mem_data_in = memory[mem_addr>>2];
+
+  // Preload Instruction Memory
+  initial begin
+    // Load test program into memory
+    // Replace these instructions with your RV32I test program
+    memory[0] = 32'h00000093;  // NOP (ADDI x1, x0, 0)
+    memory[1] = 32'h00100093;  // ADDI x1, x0, 1
+    memory[2] = 32'h00208133;  // ADD x2, x1, x2
+    memory[3] = 32'h00310113;  // ADDI x2, x2, 3
+    memory[4] = 32'h00400063;  // BEQ x0, x0, +4 (branch)
+    memory[5] = 32'h005081B3;  // ADD x3, x1, x5
+    memory[6] = 32'h00000073;  // ECALL (halt simulation)
+  end
+
+  // Monitor CPU Execution
+  always_ff @(posedge clk) begin
+    if (!reset) begin
+      // Log current PC and instruction
+      $display("PC: %h, Instruction: %h", pc, instruction);
+
+      // Halt simulation on ECALL
+      if (instruction == 32'h00000073) begin
+        $display("Simulation complete.");
+        $finish;
       end
     end
   end
 
+  // Assertions
+  initial begin
+    @(negedge reset);
+    // Check for basic instruction correctness
+    #50;
+    assert (dut.register_file_inst.registers[1] == 1)
+    else $fatal("Test failed: ADDI x1, x0, 1");
+    assert (dut.register_file_inst.registers[2] == 5)
+    else $fatal("Test failed: ADD x2, x1, x2 and ADDI x2, x2, 3");
+    $display("All tests passed!");
+    $finish;
+  end
 endmodule

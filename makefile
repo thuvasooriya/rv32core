@@ -56,15 +56,9 @@ WAVEFORM_VIEWER ?= surfer
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
 
-TOP_MODULE_OLD = tb_microprocessor
-TOP_FILE_OLD = $(ROOT_DIR)/src-old/tb_microprocessor.sv
-VERILATOR_INPUT_OLD = $(TOP_FILE_OLD) -Isrc-old --top tb_microprocessor
-WAVEFORM_FILE_OLD = $(ROOT_DIR)/sim/$(TOP_MODULE_OLD).vcd
-
 TOP_MODULE = tb_top
 TOP_FILE = $(ROOT_DIR)/tb/$(TOP_MODULE).sv
 WAVEFORM_FILE = $(ROOT_DIR)/sim/$(TOP_MODULE).vcd
-# VERILATOR_INPUT = -f input.vc top.v sim_main.cpp
 VERILATOR_INPUT = $(TOP_FILE) -Isrc -Itb --top $(TOP_MODULE)
 
 all: vl waves
@@ -88,26 +82,9 @@ vl: clean
 	@echo
 	@echo "-- DONE --------------------"
 
-vlold: clean
-	@echo
-	@echo "-- VERILATE ----------------"
-	@$(VERILATOR) --version
-	$(VERILATOR) $(VERILATOR_FLAGS) $(VERILATOR_INPUT_OLD)
-
-	@echo
-	@echo "-- RUN ---------------------"
-	@mkdir -p tmp
-	obj_dir/V$(TOP_MODULE_OLD)
-
-	@echo
-	@echo "-- DONE --------------------"
-
 waves:
 	$(WAVEFORM_VIEWER) $(WAVEFORM_FILE) > $(ROOT_DIR)/tmp/$(WAVEFORM_VIEWER).log 2>&1 &
 
-
-wavesold:
-	$(WAVEFORM_VIEWER) $(WAVEFORM_FILE_OLD) > $(ROOT_DIR)/tmp/$(WAVEFORM_VIEWER).log 2>&1 &
 
 schematic:
 	netlistsvg synth/synthesized.json -o synth/synthesized.svg

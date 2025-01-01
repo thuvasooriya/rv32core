@@ -1,34 +1,25 @@
-`default_nettype none
-
 module register_file #(
-    parameter bit CLEAR_ON_RESET = 1
+    parameter REG_WIDTH = 32,
+    ADDR_WIDTH = 5
 ) (
-    input  logic        clk_i,
-    input  logic        rst_ni,
-    input  logic [ 4:0] rs1_addr_i,
-    input  logic [ 4:0] rs2_addr_i,
-    input  logic [ 4:0] rd_addr_i,
-    input  logic [31:0] rd_data_i,
-    input  logic        rd_we_i,
-    output logic [31:0] rs1_data_o,
-    output logic [31:0] rs2_data_o
+    input  logic                  clk,
+    input  logic [ADDR_WIDTH-1:0] rs1,
+    input  logic [ADDR_WIDTH-1:0] rs2,
+    input  logic [ADDR_WIDTH-1:0] rd,
+    input  logic [ REG_WIDTH-1:0] write_data,
+    input  logic                  reg_write,
+    output logic [ REG_WIDTH-1:0] read_data1,
+    output logic [ REG_WIDTH-1:0] read_data2
 );
+  logic [REG_WIDTH-1:0] registers[0:(1<<ADDR_WIDTH)-1];
 
-  logic [31:0] registers[32];
+  // Read logic
+  assign read_data1 = registers[rs1];
+  assign read_data2 = registers[rs2];
 
-  // read ports
-  assign rs1_data_o = (rs1_addr_i == '0) ? '0 : registers[rs1_addr_i];
-  assign rs2_data_o = (rs2_addr_i == '0) ? '0 : registers[rs2_addr_i];
-
-  // write port
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni && CLEAR_ON_RESET) begin
-      // registers <= '{default: '0}; // not supported in some os tools
-      int i;
-      for (i = 0; i < 32; i = i + 1) registers[i] <= '0;
-    end else if (rd_we_i && (rd_addr_i != '0)) begin
-      registers[rd_addr_i] <= rd_data_i;
-    end
+  // Write logic
+  always_ff @(posedge clk) begin
+    if (reg_write && rd != 0)  // Register 0 is hardwired to 0
+      registers[rd] <= write_data;
   end
-
 endmodule

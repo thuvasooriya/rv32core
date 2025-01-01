@@ -1,70 +1,48 @@
-`default_nettype none
-`ifndef RV32_PKG_HEADER
-`define RV32_PKG_HEADER
-`include "rv32_pkg.svh"
-`endif
-
-module control_unit
-  import rv32_pkg::*;
-(
-    input  logic    [6:0] opcode_i,
-    input  logic    [2:0] funct3_i,
-    input  logic    [6:0] funct7_i,
-    output logic          reg_write_o,
-    output logic          mem_read_o,
-    output logic          mem_write_o,
-    output logic          branch_o,
-    output logic          alu_src_o,
-    output alu_op_e       alu_op_o
+module control_unit (
+    input  logic [6:0] opcode,
+    output logic       reg_write,
+    output logic       mem_to_reg,
+    output logic       mem_write,
+    output logic       alu_src,
+    output logic [3:0] alu_op
 );
-
   always_comb begin
-    // default values
-    reg_write_o = 1'b0;
-    mem_read_o  = 1'b0;
-    mem_write_o = 1'b0;
-    branch_o    = 1'b0;
-    alu_src_o   = 1'b0;
-    alu_op_o    = ALU_ADD;
-
-    unique case (opcode_i)
-      R_TYPE: begin
-        reg_write_o = 1'b1;
-        unique case (funct3_i)
-          3'b000: alu_op_o = (funct7_i[5]) ? ALU_SUB : ALU_ADD;
-          3'b001: alu_op_o = ALU_SLL;
-          3'b010: alu_op_o = ALU_SLT;
-          3'b011: alu_op_o = ALU_SLTU;
-          3'b100: alu_op_o = ALU_XOR;
-          3'b101: alu_op_o = (funct7_i[5]) ? ALU_SRA : ALU_SRL;
-          3'b110: alu_op_o = ALU_OR;
-          3'b111: alu_op_o = ALU_AND;
-        endcase
+    case (opcode)
+      7'b0110011: begin  // R-type
+        reg_write = 1;
+        mem_to_reg = 0;
+        mem_write = 0;
+        alu_src = 0;
+        alu_op = 4'b0000;  // ADD by default
       end
-
-      I_TYPE: begin
-        reg_write_o = 1'b1;
-        alu_src_o   = 1'b1;
-        // Similar ALU operation mapping as R-type
+      7'b0010011: begin  // I-type
+        reg_write = 1;
+        mem_to_reg = 0;
+        mem_write = 0;
+        alu_src = 1;
+        alu_op = 4'b0000;  // ADDI
       end
-
-      LOAD: begin
-        reg_write_o = 1'b1;
-        mem_read_o  = 1'b1;
-        alu_src_o   = 1'b1;
+      7'b0000011: begin  // Load
+        reg_write = 1;
+        mem_to_reg = 1;
+        mem_write = 0;
+        alu_src = 1;
+        alu_op = 4'b0000;  // ADD
       end
-
-      STORE: begin
-        mem_write_o = 1'b1;
-        alu_src_o   = 1'b1;
+      7'b0100011: begin  // Store
+        reg_write = 0;
+        mem_to_reg = 0;
+        mem_write = 1;
+        alu_src = 1;
+        alu_op = 4'b0000;  // ADD
       end
-
-      BRANCH: begin
-        branch_o = 1'b1;
+      default: begin
+        reg_write = 0;
+        mem_to_reg = 0;
+        mem_write = 0;
+        alu_src = 0;
+        alu_op = 4'b0000;
       end
-
-      // ... other instruction types
     endcase
   end
-
 endmodule
