@@ -1,85 +1,159 @@
+// 
+`timescale 1ns / 1ps
+
 module tb_top;
-  // Parameters
-  localparam ADDR_WIDTH = 32;
-  localparam DATA_WIDTH = 32;
-  localparam MEM_DEPTH = 1024;  // Size of memory in words
 
-  // Signals
   logic clk, reset;
-  logic [ADDR_WIDTH-1:0] pc;
-  logic [DATA_WIDTH-1:0] instruction;
-  logic [DATA_WIDTH-1:0] mem_data_in, mem_data_out;
-  logic mem_write, mem_read;
-  logic [ADDR_WIDTH-1:0] mem_addr;
+  logic [1:0] flag;
+  logic [31:0] instr, memWdata, addr, pc, aluIn1, aluIn2, Simm, Jimm, Bimm, Iimm, memRdata;
+  logic [4:0] rs1Id, rs2Id, rdId, leds;
+  logic [3:0] memWMask, aluControl;
+  logic
+      isALUreg,
+      regWrite,
+      isJAL,
+      isJALR,
+      isBranch,
+      isLUI,
+      isAUIPC,
+      isALUimm,
+      isLoad,
+      isStore,
+      isShamt;
 
-  // Instantiate the DUT (Device Under Test)
-  rv32i_cpu #(
-      .ADDR_WIDTH(ADDR_WIDTH),
-      .DATA_WIDTH(DATA_WIDTH)
-  ) dut (
-      .clk  (clk),
-      .reset(reset)
+  RiscV dut (
+      clk,
+      reset,
+      pc,
+      instr,
+      memWdata,
+      addr,
+      aluIn1,
+      aluIn2,
+      Simm,
+      Jimm,
+      Bimm,
+      Iimm,
+      memRdata,
+      rs1Id,
+      rs2Id,
+      rdId,
+      memWMask,
+      aluControl,
+      isALUreg,
+      regWrite,
+      isJAL,
+      isJALR,
+      isBranch,
+      isLUI,
+      isAUIPC,
+      isALUimm,
+      isLoad,
+      isStore,
+      isShamt,
+      leds
   );
 
-  // Memory Model
-  logic [DATA_WIDTH-1:0] memory[0:MEM_DEPTH-1];
-
-  // Clock Generation
-  initial clk = 0;
-  always #5 clk = ~clk;
-
-  // Reset Generation
   initial begin
+    flag  = 0;
     reset = 1;
-    #10 reset = 0;
+    #15;
+    reset = 0;
+    #2;
   end
 
-  // Memory Interface
-  always_ff @(posedge clk) begin
-    if (mem_write) begin
-      memory[mem_addr>>2] <= mem_data_out;
-    end
+  always begin
+    clk <= 1;
+    #5;
+    clk <= 0;
+    #5;
   end
 
-  assign mem_data_in = memory[mem_addr>>2];
+  always @(negedge clk) begin
+    if (pc == 8'h2c && leds == 5'he) flag = 1;
+    if (rdId == 8'h1e && addr == 8'h36 && flag) flag = flag + 1;
+    if (rdId == 8'h0 && flag == 2'b10) $finish;
+  end
 
-  // Preload Instruction Memory
   initial begin
-    // Load test program into memory
-    // Replace these instructions with your RV32I test program
-    memory[0] = 32'h00000093;  // NOP (ADDI x1, x0, 0)
-    memory[1] = 32'h00100093;  // ADDI x1, x0, 1
-    memory[2] = 32'h00208133;  // ADD x2, x1, x2
-    memory[3] = 32'h00310113;  // ADDI x2, x2, 3
-    memory[4] = 32'h00400063;  // BEQ x0, x0, +4 (branch)
-    memory[5] = 32'h005081B3;  // ADD x3, x1, x5
-    memory[6] = 32'h00000073;  // ECALL (halt simulation)
+    $dumpfile("sim/tb_top.vcd");
+    $dumpvars(0, tb_top);
   end
 
-  // Monitor CPU Execution
-  always_ff @(posedge clk) begin
-    if (!reset) begin
-      // Log current PC and instruction
-      $display("PC: %h, Instruction: %h", pc, instruction);
-
-      // Halt simulation on ECALL
-      if (instruction == 32'h00000073) begin
-        $display("Simulation complete.");
-        $finish;
-      end
-    end
-  end
-
-  // Assertions
-  initial begin
-    @(negedge reset);
-    // Check for basic instruction correctness
-    #50;
-    assert (dut.register_file_inst.registers[1] == 1)
-    else $fatal("Test failed: ADDI x1, x0, 1");
-    assert (dut.register_file_inst.registers[2] == 5)
-    else $fatal("Test failed: ADD x2, x1, x2 and ADDI x2, x2, 3");
-    $display("All tests passed!");
-    $finish;
-  end
 endmodule
+// module tb_top;
+//   logic        clk;
+//   logic        rst_n;
+//
+//   logic [31:0] imem_addr;
+//   logic [31:0] imem_data;
+//
+//   logic [31:0] dmem_addr;
+//   logic [31:0] dmem_wdata;
+//   logic [ 3:0] dmem_be;
+//   logic        dmem_we;
+//   logic [31:0] dmem_rdata;
+//
+//   // Clock generation
+//   initial begin
+//     clk = 0;
+//     forever #5 clk = ~clk;
+//   end
+//
+//   // Instruction memory
+//   logic [31:0] imem[1024];
+//   initial begin
+//     $readmemh("tb/program.hex", imem);
+//   end
+//   assign imem_data = imem[imem_addr[11:2]];
+//
+//   // Data memory
+//   logic [31:0] dmem[1024];
+//   always_ff @(posedge clk) begin
+//     if (dmem_we) begin
+//       if (dmem_be[0]) dmem[dmem_addr[11:2]][7:0] <= dmem_wdata[7:0];
+//       if (dmem_be[1]) dmem[dmem_addr[11:2]][15:8] <= dmem_wdata[15:8];
+//       if (dmem_be[2]) dmem[dmem_addr[11:2]][23:16] <= dmem_wdata[23:16];
+//       if (dmem_be[3]) dmem[dmem_addr[11:2]][31:24] <= dmem_wdata[31:24];
+//     end
+//   end
+//   assign dmem_rdata = dmem[dmem_addr[11:2]];
+//
+//   // DUT instantiation
+//   riscv_core dut (
+//       .clk_i(clk),
+//       .rst_ni(rst_n),
+//       .imem_addr_o(imem_addr),
+//       .imem_data_i(imem_data),
+//       .dmem_addr_o(dmem_addr),
+//       .dmem_wdata_o(dmem_wdata),
+//       .dmem_be_o(dmem_be),
+//       .dmem_we_o(dmem_we),
+//       .dmem_rdata_i(dmem_rdata)
+//   );
+//
+//   // Test stimulus
+//   initial begin
+//     // Initialize
+//     rst_n = 0;
+//
+//     // Wait 100ns and release reset
+//     #100 rst_n = 1;
+//
+//     // Run for some time
+//     #1000;
+//
+//     // Check results
+//     if (dut.registers[10] == 32'h12345678) $display("Test passed!");
+//     else $display("Test failed!");
+//
+//     $finish;
+//   end
+//
+//   // Dump waves
+//   initial begin
+//     $dumpfile("sim/tb_top.vcd");
+//     $dumpvars(0, tb_top);
+//   end
+//
+// endmodule

@@ -1,7 +1,11 @@
+include_dirs:
+  - inc
 source_dirs:
   - src
   - tb
+
 auto_search_workdir: true
+
 verilator:
   syntax:
     enabled: true
@@ -13,6 +17,7 @@ verilator:
       - -Wall
       - -Isrc
       - -Itb
+      - -Iinc
 verible:
   syntax:
     enabled: true
