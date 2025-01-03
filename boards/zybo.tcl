@@ -4,11 +4,10 @@ set top_module "soc"
 set part "xc7z010clg400-1"
 set device "xc7z010_1"
 
-set project_file "${parent_dir}/boards/${project_name}/${project_name}.xpr"
-set program_file "${parent_dir}/boards/${project_name}/${project_name}.runs/impl_1/${top_module}.bit"
+set project_file "${parent_dir}/tmp/${project_name}/${project_name}.xpr"
+set program_file "${parent_dir}/tmp/${project_name}/${project_name}.runs/impl_1/${top_module}.bit"
 set src_dir "${parent_dir}/src"
 set tb_dir "${parent_dir}/tb"
-set synth_dir "${parent_dir}/synth"
 set nproc 8
 
 open_project $project_file

@@ -58,7 +58,9 @@ ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
 TOP_MODULE = tb_top
 TOP_FILE = $(ROOT_DIR)/tb/$(TOP_MODULE).sv
-WAVEFORM_FILE = $(ROOT_DIR)/sim/$(TOP_MODULE).vcd
+# TOP_MODULE = soc
+# TOP_FILE = $(ROOT_DIR)src/$(TOP_MODULE).sv
+WAVEFORM_FILE = $(ROOT_DIR)tmp/$(TOP_MODULE).vcd
 VERILATOR_INPUT = $(TOP_FILE) -Isrc -Itb --top $(TOP_MODULE)
 
 all: vl waves
@@ -71,7 +73,7 @@ vl: clean
 
 	@echo
 	@echo "-- RUN ---------------------"
-	# @mkdir -p tmp
+	@mkdir -p tmp
 	obj_dir/V$(TOP_MODULE)
 
 	# @echo
@@ -83,16 +85,15 @@ vl: clean
 	@echo "-- DONE --------------------"
 
 waves:
-	$(WAVEFORM_VIEWER) $(WAVEFORM_FILE) > $(ROOT_DIR)/sim/$(WAVEFORM_VIEWER).log 2>&1 &
+	$(WAVEFORM_VIEWER) $(WAVEFORM_FILE) > $(ROOT_DIR)tmp/$(WAVEFORM_VIEWER).log 2>&1 &
 
 schematic:
-	netlistsvg synth/synthesized.json -o synth/synthesized.svg
+	netlistsvg boards/synthesized.json -o boards/synthesized.svg
 
 clean:
-	$(RM) -R sim/*.vpi
-	$(RM) -R sim/*.vvp
-	# $(RM) -R sim/*.vcd
-	$(RM) -R sim/*.fst
-	$(RM) -R sim/*.o
 	$(RM) -R tmp
 	$(RM) -R obj_dir
+	$(RM) -R .Xil
+	$(RM) -R vivado_**
+	$(RM) -R vivado.jou
+	$(RM) -R vivado.log

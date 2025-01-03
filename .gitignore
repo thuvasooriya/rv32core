@@ -1,6 +1,6 @@
 .Xil/
 obj_dir/
-boards/
+tmp/
 coverage.dat
 zybo/zybo.cache
 vivado_**

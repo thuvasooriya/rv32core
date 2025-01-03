@@ -1,26 +1,33 @@
 # Define project parameters
+set parent_dir "/Users/tony/arc/pro/dev/svdev/rv32core"
 set project_name "rv32zybo"
-set project_dir "./boards/${project_name}"
-set src_dir "./src"
-set tb_dir "./tb"
-set synth_dir "./synth"
+set top_module "soc"
 set part "xc7z010clg400-1"
+set device "xc7z010_1"
 set board_name "digilentinc.com:zybo:part0:1.0"
 
+set project_dir "${parent_dir}/tmp/${project_name}"
+set project_file "${parent_dir}/tmp/${project_name}/${project_name}.xpr"
+set program_file "${parent_dir}/tmp/${project_name}/${project_name}.runs/impl_1/${top_module}.bit"
+set src_dir "${parent_dir}/src"
+set boards_dir "${parent_dir}/boards"
+set tb_dir "${parent_dir}/tb"
+set nproc 8
+
 # Create a new project
-create_project $project_name $project_dir -part $part -force
+create_project $project_name $project_dir -part $part
 # xhub::refresh_catalog [xhub::get_xstores xilinx_board_store]
 # xhub::install [xhub::get_xitems]
 # set_param board.repoPaths [get_property LOCAL_ROOT_DIR [xhub::get_xstores xilinx_board_store]]
 # set_property board_part $board_name [current_project]
 
 # Add design files
-foreach file [glob -directory $src_dir *.v *.sv *.svh] {
+foreach file [glob -directory $src_dir *.v *.vh *.sv *.svh] {
     add_files $file
 }
 
 # Add constraint files
-foreach xdc_file [glob -directory $synth_dir *.xdc] {
+foreach xdc_file [glob -directory $boards_dir zybo.xdc] {
     add_files $xdc_file -fileset constrs_1
 }
 
