@@ -1,3 +1,8 @@
+.Xil/
 obj_dir/
+boards/
 coverage.dat
 zybo/zybo.cache
+vivado_**
+vivado.jou
+vivado.log

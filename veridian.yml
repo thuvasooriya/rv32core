@@ -13,6 +13,7 @@ verilator:
     path: "verilator"
     args:
       - --lint-only
+      - --timing
       - --sv
       - -Wall
       - -Isrc

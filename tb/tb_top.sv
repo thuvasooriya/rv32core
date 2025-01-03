@@ -1,28 +1,41 @@
+`default_nettype none
 
 module tb_top ();
   logic clk;
   logic reset = 0;
-  logic [4:0] leds;
+  logic [3:0] led;
   logic rxd = 1'b0;
   logic txd;
 
   soc uut (
       .clk  (clk),
-      .rst_n(reset),
-      .leds (leds),
+      .reset(reset),
+      .led  (led),
       .rxd_i(rxd),
       .txd_o(txd)
   );
 
-  logic [4:0] prev_leds = 0;
+  logic [3:0] prev_led = 0;
+
   initial begin
     clk = 0;
     forever begin
       #1 clk = ~clk;
-      if (leds != prev_leds) begin
-        $display("leds = %b", leds);
+      if (led != prev_led) begin
+        $display("leds = %b", led);
       end
-      prev_leds <= leds;
+      prev_led = led;
     end
   end
+
+  initial begin
+    $dumpfile("sim/tb_top.vcd");
+    $dumpvars(0, tb_top);
+  end
+  initial begin
+    #500;
+    $display("testbench timeout.");
+    $finish;
+  end
+
 endmodule
